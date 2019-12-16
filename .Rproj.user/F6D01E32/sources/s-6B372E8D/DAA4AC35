@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575503262792.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3877865902",
+    "id" : "DAA4AC35",
+    "lastKnownWriteTime" : 1576454480,
+    "last_content_update" : 1576454480630,
+    "path" : "C:/Users/jakso/Desktop/website/config.toml",
+    "project_path" : "config.toml",
+    "properties" : {
+        "cursorPosition" : "24,19",
+        "scrollLine" : "19"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "toml"
+}

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Jakson Johnson" />
+    <meta name="description" content="I&#39;m not sure where I&#39;m going with this yet, but here are my projects from comp bio">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 1</title>
+    <meta name="generator" content="Hugo 0.60.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project1/">Project 1</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>Intro: The datasets I have chosen to work with are “drug_use_table” and “CrimeStatebyState_2_”. The “drug_use_table” dataset is sourced from Center for Behavioral Health Statistics and Quality and Substance Abuse and Mental Health Services Administration, both of which collected data from every state regarding self-reported drug use from 2004-2014. This data was then complied into one comprehensive dataset. The “drug_use_table” contains 31 variables, 28 of which represent the number of people who self-reported the use of specific drug. The other 3 varibles in the dataset are “Year”, “Total”, and “None reported”.The “CrimeStatebyState_2_” was acquired from the FBI’s Uniform Crime Reporting Statistics website and contains estimated crime statistics for each state from 2004-2014. The dataset contains 13 variables, 10 of which represent the estimated crime rate of various crimes. The other 3 variables in the dataset are “Year”, “State”, and “Population”. These datasets were interesting to me, because I thought it would be interesting to see how drug use is generally correlated with crime. The only association I expect to see is a general positive relationship between total drug use and total crime rates (drug use is not measured as a crime statistic).</p>
+<pre class="r"><code>library(readxl)
+CrimeStatebyState_2_ &lt;- read_xlsx(&quot;C:/Users/jakso/Documents/CrimeStatebyState (2).xlsx&quot;)
+drug_use_table &lt;- read_xlsx(&quot;C:/Users/jakso/OneDrive/drug use table.xlsx&quot;)
+library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 3.5.3</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 3.5.3</code></pre>
+<pre><code>## Warning: package &#39;tibble&#39; was built under R version 3.5.3</code></pre>
+<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 3.5.3</code></pre>
+<pre><code>## Warning: package &#39;purrr&#39; was built under R version 3.5.3</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 3.5.3</code></pre>
+<pre class="r"><code>library(formatR)</code></pre>
+<pre><code>## Warning: package &#39;formatR&#39; was built under R version 3.5.3</code></pre>
+<pre class="r"><code>library(cluster)</code></pre>
+<pre><code>## Warning: package &#39;cluster&#39; was built under R version 3.5.3</code></pre>
+<pre class="r"><code>full_data_P1 &lt;- full_join(drug_use_table, CrimeStatebyState_2_)
+full_data_P1 &lt;- full_data_P1 %&gt;% select(-`Revised rape rate /2`)
+full_data_P1 &lt;- full_data_P1 %&gt;% na.omit()
+glimpse(full_data_P1)</code></pre>
+<pre><code>## Observations: 561
+## Variables: 42
+## $ Year                                        &lt;dbl&gt; 2004, 2004, 2004, ...
+## $ Total                                       &lt;dbl&gt; 1808469, 1808469, ...
+## $ Alcohol                                     &lt;dbl&gt; 729366, 729366, 72...
+## $ `Alcohol only`                              &lt;dbl&gt; 402999, 402999, 40...
+## $ `Alcohol w/secondary drug`                  &lt;dbl&gt; 326367, 326367, 32...
+## $ Opiates                                     &lt;dbl&gt; 323409, 323409, 32...
+## $ Heroin                                      &lt;dbl&gt; 262518, 262518, 26...
+## $ `Other opiates/synthetics`                  &lt;dbl&gt; 60891, 60891, 6089...
+## $ `Non-RX methadone`                          &lt;dbl&gt; 3157, 3157, 3157, ...
+## $ `Other opiates/synthetics__1`               &lt;dbl&gt; 57734, 57734, 5773...
+## $ Cocaine                                     &lt;dbl&gt; 248492, 248492, 24...
+## $ `Smoked cocaine`                            &lt;dbl&gt; 179091, 179091, 17...
+## $ `Non-smoked cocaine`                        &lt;dbl&gt; 69401, 69401, 6940...
+## $ `Marijuana/hashish`                         &lt;dbl&gt; 285193, 285193, 28...
+## $ Stimulants                                  &lt;dbl&gt; 143525, 143525, 14...
+## $ Methamphetamine                             &lt;dbl&gt; 124500, 124500, 12...
+## $ `Other amphetamines`                        &lt;dbl&gt; 18010, 18010, 1801...
+## $ `Other stimulants`                          &lt;dbl&gt; 1015, 1015, 1015, ...
+## $ `Other drugs`                               &lt;dbl&gt; 28270, 28270, 2827...
+## $ Tranquilizers                               &lt;dbl&gt; 8169, 8169, 8169, ...
+## $ Benzodiazepines                             &lt;dbl&gt; 7500, 7500, 7500, ...
+## $ `Other tranquilizers`                       &lt;dbl&gt; 669, 669, 669, 669...
+## $ `Sedatives/hypnotics`                       &lt;dbl&gt; 4179, 4179, 4179, ...
+## $ Barbiturates                                &lt;dbl&gt; 1294, 1294, 1294, ...
+## $ `Other sedatives/hypnotics`                 &lt;dbl&gt; 2885, 2885, 2885, ...
+## $ Hallucinogens                               &lt;dbl&gt; 2290, 2290, 2290, ...
+## $ PCP                                         &lt;dbl&gt; 3236, 3236, 3236, ...
+## $ Inhalants                                   &lt;dbl&gt; 1191, 1191, 1191, ...
+## $ `Over-the-counter`                          &lt;dbl&gt; 828, 828, 828, 828...
+## $ Other                                       &lt;dbl&gt; 8377, 8377, 8377, ...
+## $ `None reported`                             &lt;dbl&gt; 50214, 50214, 5021...
+## $ Population                                  &lt;dbl&gt; 4525375, 657755, 5...
+## $ `Violent Crime rate`                        &lt;dbl&gt; 427.0, 632.3, 504....
+## $ `Murder and nonnegligent manslaughter rate` &lt;dbl&gt; 5.6, 5.6, 7.2, 6.4...
+## $ `Legacy rape rate /1`                       &lt;dbl&gt; 38.5, 84.8, 33.0, ...
+## $ `Robbery rate`                              &lt;dbl&gt; 133.5, 68.0, 134.5...
+## $ `Aggravated assault rate`                   &lt;dbl&gt; 249.4, 473.9, 329....
+## $ `Property crime rate`                       &lt;dbl&gt; 4029.3, 3370.9, 50...
+## $ `Burglary rate`                             &lt;dbl&gt; 987.0, 573.6, 991....
+## $ `Larceny-theft rate`                        &lt;dbl&gt; 2732.4, 2456.7, 31...
+## $ `Motor vehicle theft rate`                  &lt;dbl&gt; 309.9, 340.6, 963....
+## $ State                                       &lt;chr&gt; &quot;Alabama&quot;, &quot;Alaska...</code></pre>
+<pre class="r"><code>filter</code></pre>
+<pre><code>## function (.data, ..., .preserve = FALSE) 
+## {
+##     UseMethod(&quot;filter&quot;)
+## }
+## &lt;bytecode: 0x0000000018381870&gt;
+## &lt;environment: namespace:dplyr&gt;</code></pre>
+<p>Before importing the datasets into R, I formatted them in excel to make sure they would already be tidy. Once imported, I chose to do a full join, by “Year”, between the two datasets in order to preserve all of the data. A full join combines the two datasets into one comprehensive dataset without deleting any observations from either dataset. This join resulted in no dropped cases, and all of the observations are unique.</p>
+<pre class="r"><code>ezsub &lt;- function(x, y) (x - y)
+full_data_P1 &lt;- full_data_P1 %&gt;% mutate(Total_Users = ezsub(Total, 
+    `None reported`))
+fdp1 &lt;- full_data_P1
+fdp12 &lt;- as.tibble(fdp1)</code></pre>
+<pre><code>## Warning: `as.tibble()` is deprecated, use `as_tibble()` (but mind the new semantics).
+## This warning is displayed once per session.</code></pre>
+<pre class="r"><code>fdp12 &lt;- fdp12 %&gt;% group_by(Year) %&gt;% mutate(NationalPop = (sum(Population)))
+fdp12 &lt;- fdp12 %&gt;% mutate(Fraction_of_National_Pop = (Population/NationalPop)) %&gt;% 
+    mutate(Total_Users_State = (Fraction_of_National_Pop * Total_Users))</code></pre>
+<pre class="r"><code>fdp1 %&gt;% summarise_all(funs(n_distinct, first, last))</code></pre>
+<pre><code>## Warning: funs() is soft deprecated as of dplyr 0.8.0
+## Please use a list of either functions or lambdas: 
+## 
+##   # Simple named list: 
+##   list(mean = mean, median = median)
+## 
+##   # Auto named with `tibble::lst()`: 
+##   tibble::lst(mean, median)
+## 
+##   # Using lambdas
+##   list(~ mean(., trim = .2), ~ median(., na.rm = TRUE))
+## This warning is displayed once per session.</code></pre>
+<pre><code>## # A tibble: 1 x 129
+##   Year_n_distinct Total_n_distinct Alcohol_n_disti~ `Alcohol only_n~
+##             &lt;int&gt;            &lt;int&gt;            &lt;int&gt;            &lt;int&gt;
+## 1              11               11               11               11
+## # ... with 125 more variables: `Alcohol w/secondary
+## #   drug_n_distinct` &lt;int&gt;, Opiates_n_distinct &lt;int&gt;,
+## #   Heroin_n_distinct &lt;int&gt;, `Other opiates/synthetics_n_distinct` &lt;int&gt;,
+## #   `Non-RX methadone_n_distinct` &lt;int&gt;, `Other
+## #   opiates/synthetics__1_n_distinct` &lt;int&gt;, Cocaine_n_distinct &lt;int&gt;,
+## #   `Smoked cocaine_n_distinct` &lt;int&gt;, `Non-smoked
+## #   cocaine_n_distinct` &lt;int&gt;, `Marijuana/hashish_n_distinct` &lt;int&gt;,
+## #   Stimulants_n_distinct &lt;int&gt;, Methamphetamine_n_distinct &lt;int&gt;, `Other
+## #   amphetamines_n_distinct` &lt;int&gt;, `Other stimulants_n_distinct` &lt;int&gt;,
+## #   `Other drugs_n_distinct` &lt;int&gt;, Tranquilizers_n_distinct &lt;int&gt;,
+## #   Benzodiazepines_n_distinct &lt;int&gt;, `Other
+## #   tranquilizers_n_distinct` &lt;int&gt;,
+## #   `Sedatives/hypnotics_n_distinct` &lt;int&gt;, Barbiturates_n_distinct &lt;int&gt;,
+## #   `Other sedatives/hypnotics_n_distinct` &lt;int&gt;,
+## #   Hallucinogens_n_distinct &lt;int&gt;, PCP_n_distinct &lt;int&gt;,
+## #   Inhalants_n_distinct &lt;int&gt;, `Over-the-counter_n_distinct` &lt;int&gt;,
+## #   Other_n_distinct &lt;int&gt;, `None reported_n_distinct` &lt;int&gt;,
+## #   Population_n_distinct &lt;int&gt;, `Violent Crime rate_n_distinct` &lt;int&gt;,
+## #   `Murder and nonnegligent manslaughter rate_n_distinct` &lt;int&gt;, `Legacy
+## #   rape rate /1_n_distinct` &lt;int&gt;, `Robbery rate_n_distinct` &lt;int&gt;,
+## #   `Aggravated assault rate_n_distinct` &lt;int&gt;, `Property crime
+## #   rate_n_distinct` &lt;int&gt;, `Burglary rate_n_distinct` &lt;int&gt;,
+## #   `Larceny-theft rate_n_distinct` &lt;int&gt;, `Motor vehicle theft
+## #   rate_n_distinct` &lt;int&gt;, State_n_distinct &lt;int&gt;,
+## #   Total_Users_n_distinct &lt;int&gt;, Year_first &lt;dbl&gt;, Total_first &lt;dbl&gt;,
+## #   Alcohol_first &lt;dbl&gt;, `Alcohol only_first` &lt;dbl&gt;, `Alcohol w/secondary
+## #   drug_first` &lt;dbl&gt;, Opiates_first &lt;dbl&gt;, Heroin_first &lt;dbl&gt;, `Other
+## #   opiates/synthetics_first` &lt;dbl&gt;, `Non-RX methadone_first` &lt;dbl&gt;,
+## #   `Other opiates/synthetics__1_first` &lt;dbl&gt;, Cocaine_first &lt;dbl&gt;,
+## #   `Smoked cocaine_first` &lt;dbl&gt;, `Non-smoked cocaine_first` &lt;dbl&gt;,
+## #   `Marijuana/hashish_first` &lt;dbl&gt;, Stimulants_first &lt;dbl&gt;,
+## #   Methamphetamine_first &lt;dbl&gt;, `Other amphetamines_first` &lt;dbl&gt;, `Other
+## #   stimulants_first` &lt;dbl&gt;, `Other drugs_first` &lt;dbl&gt;,
+## #   Tranquilizers_first &lt;dbl&gt;, Benzodiazepines_first &lt;dbl&gt;, `Other
+## #   tranquilizers_first` &lt;dbl&gt;, `Sedatives/hypnotics_first` &lt;dbl&gt;,
+## #   Barbiturates_first &lt;dbl&gt;, `Other sedatives/hypnotics_first` &lt;dbl&gt;,
+## #   Hallucinogens_first &lt;dbl&gt;, PCP_first &lt;dbl&gt;, Inhalants_first &lt;dbl&gt;,
+## #   `Over-the-counter_first` &lt;dbl&gt;, Other_first &lt;dbl&gt;, `None
+## #   reported_first` &lt;dbl&gt;, Population_first &lt;dbl&gt;, `Violent Crime
+## #   rate_first` &lt;dbl&gt;, `Murder and nonnegligent manslaughter
+## #   rate_first` &lt;dbl&gt;, `Legacy rape rate /1_first` &lt;dbl&gt;, `Robbery
+## #   rate_first` &lt;dbl&gt;, `Aggravated assault rate_first` &lt;dbl&gt;, `Property
+## #   crime rate_first` &lt;dbl&gt;, `Burglary rate_first` &lt;dbl&gt;, `Larceny-theft
+## #   rate_first` &lt;dbl&gt;, `Motor vehicle theft rate_first` &lt;dbl&gt;,
+## #   State_first &lt;chr&gt;, Total_Users_first &lt;dbl&gt;, Year_last &lt;dbl&gt;,
+## #   Total_last &lt;dbl&gt;, Alcohol_last &lt;dbl&gt;, `Alcohol only_last` &lt;dbl&gt;,
+## #   `Alcohol w/secondary drug_last` &lt;dbl&gt;, Opiates_last &lt;dbl&gt;,
+## #   Heroin_last &lt;dbl&gt;, `Other opiates/synthetics_last` &lt;dbl&gt;, `Non-RX
+## #   methadone_last` &lt;dbl&gt;, `Other opiates/synthetics__1_last` &lt;dbl&gt;,
+## #   Cocaine_last &lt;dbl&gt;, `Smoked cocaine_last` &lt;dbl&gt;, `Non-smoked
+## #   cocaine_last` &lt;dbl&gt;, `Marijuana/hashish_last` &lt;dbl&gt;,
+## #   Stimulants_last &lt;dbl&gt;, Methamphetamine_last &lt;dbl&gt;, `Other
+## #   amphetamines_last` &lt;dbl&gt;, `Other stimulants_last` &lt;dbl&gt;, ...</code></pre>
+<pre class="r"><code>fdp1 %&gt;% select(1:31) %&gt;% summarise_all(funs(mean, sd, var, min, 
+    max, median, IQR))</code></pre>
+<pre><code>## # A tibble: 1 x 217
+##   Year_mean Total_mean Alcohol_mean `Alcohol only_m~ `Alcohol w/seco~
+##       &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1      2009    1891281      750671.          417799.          332872.
+## # ... with 212 more variables: Opiates_mean &lt;dbl&gt;, Heroin_mean &lt;dbl&gt;,
+## #   `Other opiates/synthetics_mean` &lt;dbl&gt;, `Non-RX methadone_mean` &lt;dbl&gt;,
+## #   `Other opiates/synthetics__1_mean` &lt;dbl&gt;, Cocaine_mean &lt;dbl&gt;, `Smoked
+## #   cocaine_mean` &lt;dbl&gt;, `Non-smoked cocaine_mean` &lt;dbl&gt;,
+## #   `Marijuana/hashish_mean` &lt;dbl&gt;, Stimulants_mean &lt;dbl&gt;,
+## #   Methamphetamine_mean &lt;dbl&gt;, `Other amphetamines_mean` &lt;dbl&gt;, `Other
+## #   stimulants_mean` &lt;dbl&gt;, `Other drugs_mean` &lt;dbl&gt;,
+## #   Tranquilizers_mean &lt;dbl&gt;, Benzodiazepines_mean &lt;dbl&gt;, `Other
+## #   tranquilizers_mean` &lt;dbl&gt;, `Sedatives/hypnotics_mean` &lt;dbl&gt;,
+## #   Barbiturates_mean &lt;dbl&gt;, `Other sedatives/hypnotics_mean` &lt;dbl&gt;,
+## #   Hallucinogens_mean &lt;dbl&gt;, PCP_mean &lt;dbl&gt;, Inhalants_mean &lt;dbl&gt;,
+## #   `Over-the-counter_mean` &lt;dbl&gt;, Other_mean &lt;dbl&gt;, `None
+## #   reported_mean` &lt;dbl&gt;, Year_sd &lt;dbl&gt;, Total_sd &lt;dbl&gt;, Alcohol_sd &lt;dbl&gt;,
+## #   `Alcohol only_sd` &lt;dbl&gt;, `Alcohol w/secondary drug_sd` &lt;dbl&gt;,
+## #   Opiates_sd &lt;dbl&gt;, Heroin_sd &lt;dbl&gt;, `Other
+## #   opiates/synthetics_sd` &lt;dbl&gt;, `Non-RX methadone_sd` &lt;dbl&gt;, `Other
+## #   opiates/synthetics__1_sd` &lt;dbl&gt;, Cocaine_sd &lt;dbl&gt;, `Smoked
+## #   cocaine_sd` &lt;dbl&gt;, `Non-smoked cocaine_sd` &lt;dbl&gt;,
+## #   `Marijuana/hashish_sd` &lt;dbl&gt;, Stimulants_sd &lt;dbl&gt;,
+## #   Methamphetamine_sd &lt;dbl&gt;, `Other amphetamines_sd` &lt;dbl&gt;, `Other
+## #   stimulants_sd` &lt;dbl&gt;, `Other drugs_sd` &lt;dbl&gt;, Tranquilizers_sd &lt;dbl&gt;,
+## #   Benzodiazepines_sd &lt;dbl&gt;, `Other tranquilizers_sd` &lt;dbl&gt;,
+## #   `Sedatives/hypnotics_sd` &lt;dbl&gt;, Barbiturates_sd &lt;dbl&gt;, `Other
+## #   sedatives/hypnotics_sd` &lt;dbl&gt;, Hallucinogens_sd &lt;dbl&gt;, PCP_sd &lt;dbl&gt;,
+## #   Inhalants_sd &lt;dbl&gt;, `Over-the-counter_sd` &lt;dbl&gt;, Other_sd &lt;dbl&gt;, `None
+## #   reported_sd` &lt;dbl&gt;, Year_var &lt;dbl&gt;, Total_var &lt;dbl&gt;,
+## #   Alcohol_var &lt;dbl&gt;, `Alcohol only_var` &lt;dbl&gt;, `Alcohol w/secondary
+## #   drug_var` &lt;dbl&gt;, Opiates_var &lt;dbl&gt;, Heroin_var &lt;dbl&gt;, `Other
+## #   opiates/synthetics_var` &lt;dbl&gt;, `Non-RX methadone_var` &lt;dbl&gt;, `Other
+## #   opiates/synthetics__1_var` &lt;dbl&gt;, Cocaine_var &lt;dbl&gt;, `Smoked
+## #   cocaine_var` &lt;dbl&gt;, `Non-smoked cocaine_var` &lt;dbl&gt;,
+## #   `Marijuana/hashish_var` &lt;dbl&gt;, Stimulants_var &lt;dbl&gt;,
+## #   Methamphetamine_var &lt;dbl&gt;, `Other amphetamines_var` &lt;dbl&gt;, `Other
+## #   stimulants_var` &lt;dbl&gt;, `Other drugs_var` &lt;dbl&gt;,
+## #   Tranquilizers_var &lt;dbl&gt;, Benzodiazepines_var &lt;dbl&gt;, `Other
+## #   tranquilizers_var` &lt;dbl&gt;, `Sedatives/hypnotics_var` &lt;dbl&gt;,
+## #   Barbiturates_var &lt;dbl&gt;, `Other sedatives/hypnotics_var` &lt;dbl&gt;,
+## #   Hallucinogens_var &lt;dbl&gt;, PCP_var &lt;dbl&gt;, Inhalants_var &lt;dbl&gt;,
+## #   `Over-the-counter_var` &lt;dbl&gt;, Other_var &lt;dbl&gt;, `None
+## #   reported_var` &lt;dbl&gt;, Year_min &lt;dbl&gt;, Total_min &lt;dbl&gt;,
+## #   Alcohol_min &lt;dbl&gt;, `Alcohol only_min` &lt;dbl&gt;, `Alcohol w/secondary
+## #   drug_min` &lt;dbl&gt;, Opiates_min &lt;dbl&gt;, Heroin_min &lt;dbl&gt;, `Other
+## #   opiates/synthetics_min` &lt;dbl&gt;, `Non-RX methadone_min` &lt;dbl&gt;, `Other
+## #   opiates/synthetics__1_min` &lt;dbl&gt;, Cocaine_min &lt;dbl&gt;, `Smoked
+## #   cocaine_min` &lt;dbl&gt;, ...</code></pre>
+<pre class="r"><code>fdp12 %&gt;% filter(`Violent Crime rate` &lt; 1200) %&gt;% arrange(desc(`Violent Crime rate`)) %&gt;% 
+    select(`Violent Crime rate`, State, Year)</code></pre>
+<pre><code>## # A tibble: 550 x 3
+## # Groups:   Year [11]
+##    `Violent Crime rate` State  Year
+##                   &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;
+##  1                 790. SC     2004
+##  2                 786. SC     2007
+##  3                 771. SC     2006
+##  4                 767  SC     2005
+##  5                 762. TN     2006
+##  6                 757  TN     2005
+##  7                 755  TN     2007
+##  8                 755. NV     2007
+##  9                 749. NV     2006
+## 10                 740. LA     2007
+## # ... with 540 more rows</code></pre>
+<pre class="r"><code>fdp1 %&gt;% select(-c(1:31)) %&gt;% group_by(State) %&gt;% summarise_if(is.numeric, 
+    funs(mean, var, min, max, sd, median, IQR))</code></pre>
+<pre><code>## # A tibble: 50 x 78
+##    State Population_mean `Violent Crime ~ `Murder and non~ `Legacy rape ra~
+##    &lt;chr&gt;           &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Alab~        4705562              432.             7.02             32  
+##  2 Alas~         700146.             638.             4.71             76.3
+##  3 Ariz~        4624699.             482.             6.33             39.8
+##  4 Cali~       37180107.             469.             5.56             23.2
+##  5 Colo~        4984147.             343.             3.27             43.1
+##  6 conn~        3543302.             283.             3.21             19.6
+##  7 DC            605724.            1343.            24.5              35.0
+##  8 Dela~         884918.             613.             5.05             37.9
+##  9 flor~       18645118.             610.             5.59             31.4
+## 10 geor~        9636972.             427.             6.18             22.7
+## # ... with 40 more rows, and 73 more variables: `Robbery rate_mean` &lt;dbl&gt;,
+## #   `Aggravated assault rate_mean` &lt;dbl&gt;, `Property crime
+## #   rate_mean` &lt;dbl&gt;, `Burglary rate_mean` &lt;dbl&gt;, `Larceny-theft
+## #   rate_mean` &lt;dbl&gt;, `Motor vehicle theft rate_mean` &lt;dbl&gt;,
+## #   Total_Users_mean &lt;dbl&gt;, Population_var &lt;dbl&gt;, `Violent Crime
+## #   rate_var` &lt;dbl&gt;, `Murder and nonnegligent manslaughter
+## #   rate_var` &lt;dbl&gt;, `Legacy rape rate /1_var` &lt;dbl&gt;, `Robbery
+## #   rate_var` &lt;dbl&gt;, `Aggravated assault rate_var` &lt;dbl&gt;, `Property crime
+## #   rate_var` &lt;dbl&gt;, `Burglary rate_var` &lt;dbl&gt;, `Larceny-theft
+## #   rate_var` &lt;dbl&gt;, `Motor vehicle theft rate_var` &lt;dbl&gt;,
+## #   Total_Users_var &lt;dbl&gt;, Population_min &lt;dbl&gt;, `Violent Crime
+## #   rate_min` &lt;dbl&gt;, `Murder and nonnegligent manslaughter
+## #   rate_min` &lt;dbl&gt;, `Legacy rape rate /1_min` &lt;dbl&gt;, `Robbery
+## #   rate_min` &lt;dbl&gt;, `Aggravated assault rate_min` &lt;dbl&gt;, `Property crime
+## #   rate_min` &lt;dbl&gt;, `Burglary rate_min` &lt;dbl&gt;, `Larceny-theft
+## #   rate_min` &lt;dbl&gt;, `Motor vehicle theft rate_min` &lt;dbl&gt;,
+## #   Total_Users_min &lt;dbl&gt;, Population_max &lt;dbl&gt;, `Violent Crime
+## #   rate_max` &lt;dbl&gt;, `Murder and nonnegligent manslaughter
+## #   rate_max` &lt;dbl&gt;, `Legacy rape rate /1_max` &lt;dbl&gt;, `Robbery
+## #   rate_max` &lt;dbl&gt;, `Aggravated assault rate_max` &lt;dbl&gt;, `Property crime
+## #   rate_max` &lt;dbl&gt;, `Burglary rate_max` &lt;dbl&gt;, `Larceny-theft
+## #   rate_max` &lt;dbl&gt;, `Motor vehicle theft rate_max` &lt;dbl&gt;,
+## #   Total_Users_max &lt;dbl&gt;, Population_sd &lt;dbl&gt;, `Violent Crime
+## #   rate_sd` &lt;dbl&gt;, `Murder and nonnegligent manslaughter rate_sd` &lt;dbl&gt;,
+## #   `Legacy rape rate /1_sd` &lt;dbl&gt;, `Robbery rate_sd` &lt;dbl&gt;, `Aggravated
+## #   assault rate_sd` &lt;dbl&gt;, `Property crime rate_sd` &lt;dbl&gt;, `Burglary
+## #   rate_sd` &lt;dbl&gt;, `Larceny-theft rate_sd` &lt;dbl&gt;, `Motor vehicle theft
+## #   rate_sd` &lt;dbl&gt;, Total_Users_sd &lt;dbl&gt;, Population_median &lt;dbl&gt;,
+## #   `Violent Crime rate_median` &lt;dbl&gt;, `Murder and nonnegligent
+## #   manslaughter rate_median` &lt;dbl&gt;, `Legacy rape rate /1_median` &lt;dbl&gt;,
+## #   `Robbery rate_median` &lt;dbl&gt;, `Aggravated assault rate_median` &lt;dbl&gt;,
+## #   `Property crime rate_median` &lt;dbl&gt;, `Burglary rate_median` &lt;dbl&gt;,
+## #   `Larceny-theft rate_median` &lt;dbl&gt;, `Motor vehicle theft
+## #   rate_median` &lt;dbl&gt;, Total_Users_median &lt;dbl&gt;, Population_IQR &lt;dbl&gt;,
+## #   `Violent Crime rate_IQR` &lt;dbl&gt;, `Murder and nonnegligent manslaughter
+## #   rate_IQR` &lt;dbl&gt;, `Legacy rape rate /1_IQR` &lt;dbl&gt;, `Robbery
+## #   rate_IQR` &lt;dbl&gt;, `Aggravated assault rate_IQR` &lt;dbl&gt;, `Property crime
+## #   rate_IQR` &lt;dbl&gt;, `Burglary rate_IQR` &lt;dbl&gt;, `Larceny-theft
+## #   rate_IQR` &lt;dbl&gt;, `Motor vehicle theft rate_IQR` &lt;dbl&gt;,
+## #   Total_Users_IQR &lt;dbl&gt;</code></pre>
+<pre class="r"><code>fdp12 %&gt;% group_by(State, Year) %&gt;% summarise_if(is.numeric, 
+    funs(mean, sd))</code></pre>
+<pre><code>## # A tibble: 550 x 90
+## # Groups:   State [50]
+##    State  Year Total_mean Alcohol_mean `Alcohol only_m~ `Alcohol w/seco~
+##    &lt;chr&gt; &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Alab~  2004    1808469       729366           402999           326367
+##  2 Alab~  2005    1895917       746057           412323           333734
+##  3 Alab~  2006    1962674       780815           433612           347203
+##  4 Alab~  2007    1974739       806323           448707           357616
+##  5 Alab~  2008    2076291       860427           483494           376933
+##  6 Alab~  2009    2052174       855294           479134           376160
+##  7 Alab~  2010    1928829       781692           431490           350202
+##  8 Alab~  2011    1928123       756533           416950           339583
+##  9 Alab~  2012    1825970       707863           391899           315964
+## 10 Alab~  2013    1736547       647989           367484           280505
+## # ... with 540 more rows, and 84 more variables: Opiates_mean &lt;dbl&gt;,
+## #   Heroin_mean &lt;dbl&gt;, `Other opiates/synthetics_mean` &lt;dbl&gt;, `Non-RX
+## #   methadone_mean` &lt;dbl&gt;, `Other opiates/synthetics__1_mean` &lt;dbl&gt;,
+## #   Cocaine_mean &lt;dbl&gt;, `Smoked cocaine_mean` &lt;dbl&gt;, `Non-smoked
+## #   cocaine_mean` &lt;dbl&gt;, `Marijuana/hashish_mean` &lt;dbl&gt;,
+## #   Stimulants_mean &lt;dbl&gt;, Methamphetamine_mean &lt;dbl&gt;, `Other
+## #   amphetamines_mean` &lt;dbl&gt;, `Other stimulants_mean` &lt;dbl&gt;, `Other
+## #   drugs_mean` &lt;dbl&gt;, Tranquilizers_mean &lt;dbl&gt;,
+## #   Benzodiazepines_mean &lt;dbl&gt;, `Other tranquilizers_mean` &lt;dbl&gt;,
+## #   `Sedatives/hypnotics_mean` &lt;dbl&gt;, Barbiturates_mean &lt;dbl&gt;, `Other
+## #   sedatives/hypnotics_mean` &lt;dbl&gt;, Hallucinogens_mean &lt;dbl&gt;,
+## #   PCP_mean &lt;dbl&gt;, Inhalants_mean &lt;dbl&gt;, `Over-the-counter_mean` &lt;dbl&gt;,
+## #   Other_mean &lt;dbl&gt;, `None reported_mean` &lt;dbl&gt;, Population_mean &lt;dbl&gt;,
+## #   `Violent Crime rate_mean` &lt;dbl&gt;, `Murder and nonnegligent manslaughter
+## #   rate_mean` &lt;dbl&gt;, `Legacy rape rate /1_mean` &lt;dbl&gt;, `Robbery
+## #   rate_mean` &lt;dbl&gt;, `Aggravated assault rate_mean` &lt;dbl&gt;, `Property
+## #   crime rate_mean` &lt;dbl&gt;, `Burglary rate_mean` &lt;dbl&gt;, `Larceny-theft
+## #   rate_mean` &lt;dbl&gt;, `Motor vehicle theft rate_mean` &lt;dbl&gt;,
+## #   Total_Users_mean &lt;dbl&gt;, NationalPop_mean &lt;dbl&gt;,
+## #   Fraction_of_National_Pop_mean &lt;dbl&gt;, Total_Users_State_mean &lt;dbl&gt;,
+## #   Total_sd &lt;dbl&gt;, Alcohol_sd &lt;dbl&gt;, `Alcohol only_sd` &lt;dbl&gt;, `Alcohol
+## #   w/secondary drug_sd` &lt;dbl&gt;, Opiates_sd &lt;dbl&gt;, Heroin_sd &lt;dbl&gt;, `Other
+## #   opiates/synthetics_sd` &lt;dbl&gt;, `Non-RX methadone_sd` &lt;dbl&gt;, `Other
+## #   opiates/synthetics__1_sd` &lt;dbl&gt;, Cocaine_sd &lt;dbl&gt;, `Smoked
+## #   cocaine_sd` &lt;dbl&gt;, `Non-smoked cocaine_sd` &lt;dbl&gt;,
+## #   `Marijuana/hashish_sd` &lt;dbl&gt;, Stimulants_sd &lt;dbl&gt;,
+## #   Methamphetamine_sd &lt;dbl&gt;, `Other amphetamines_sd` &lt;dbl&gt;, `Other
+## #   stimulants_sd` &lt;dbl&gt;, `Other drugs_sd` &lt;dbl&gt;, Tranquilizers_sd &lt;dbl&gt;,
+## #   Benzodiazepines_sd &lt;dbl&gt;, `Other tranquilizers_sd` &lt;dbl&gt;,
+## #   `Sedatives/hypnotics_sd` &lt;dbl&gt;, Barbiturates_sd &lt;dbl&gt;, `Other
+## #   sedatives/hypnotics_sd` &lt;dbl&gt;, Hallucinogens_sd &lt;dbl&gt;, PCP_sd &lt;dbl&gt;,
+## #   Inhalants_sd &lt;dbl&gt;, `Over-the-counter_sd` &lt;dbl&gt;, Other_sd &lt;dbl&gt;, `None
+## #   reported_sd` &lt;dbl&gt;, Population_sd &lt;dbl&gt;, `Violent Crime
+## #   rate_sd` &lt;dbl&gt;, `Murder and nonnegligent manslaughter rate_sd` &lt;dbl&gt;,
+## #   `Legacy rape rate /1_sd` &lt;dbl&gt;, `Robbery rate_sd` &lt;dbl&gt;, `Aggravated
+## #   assault rate_sd` &lt;dbl&gt;, `Property crime rate_sd` &lt;dbl&gt;, `Burglary
+## #   rate_sd` &lt;dbl&gt;, `Larceny-theft rate_sd` &lt;dbl&gt;, `Motor vehicle theft
+## #   rate_sd` &lt;dbl&gt;, Total_Users_sd &lt;dbl&gt;, NationalPop_sd &lt;dbl&gt;,
+## #   Fraction_of_National_Pop_sd &lt;dbl&gt;, Total_Users_State_sd &lt;dbl&gt;</code></pre>
+<pre class="r"><code>select_if(fdp12, is.numeric) %&gt;% cor() %&gt;% glimpse()</code></pre>
+<pre><code>##  num [1:45, 1:45] 1 -0.498 -0.551 -0.524 -0.581 ...
+##  - attr(*, &quot;dimnames&quot;)=List of 2
+##   ..$ : chr [1:45] &quot;Year&quot; &quot;Total&quot; &quot;Alcohol&quot; &quot;Alcohol only&quot; ...
+##   ..$ : chr [1:45] &quot;Year&quot; &quot;Total&quot; &quot;Alcohol&quot; &quot;Alcohol only&quot; ...</code></pre>
+<p>The first thing I did here is create a function called “ezsub” which just subtracts the values of 2 variables from each other (x,y). I then used this function, in combination with mutate, to create a new varible called “Total_Users” which represents the total number of people who participated in the drug use survey each year less the number of participants who did not report any drug use each year. Mutate was then also used to create 3 more new variables.“NationalPop” represents the total US population as reported each year, “Fraction_of_National_Pop” represents how much of the national population each state represented each year, “Total_Users_State” represents the estimated number of users, who participated in the self-reporting survey, in each state, by year. I then calculated the number of distinct obervations, the first observation, and the last observation for each variable in the complete dataset.I then calculated the mean, standard variation, variance, minimum value, maximum value, median, and IQR for all of the variables in the original “drug_use_table” dataset. Next, I created a table which showed the violent crime rates in each state, not including DC since it isn’t a state and the crime rates were disproporionately high, for each year, organized in descending order(from greatest to least). The DC data was filtered out of the dataset by filtering out any violent crime rates above 1200. Next, I calculated the mean, standard variation, variance, minimum value, maximum value, median, and IQR for each numeric variable in the original “CrimeStatebyState_2_” dataset, grouped by state. Grouping by state creates a summary variable for each state as opposed to just a general summary variable of total observations in a column. Next, I calculated the mean and standard variation for all of the numeric variables in the full joined dataset, grouped by year and state. However, since the the dataset is tidy and all of the observations are unique, grouping by state and year resulted in no change between the summarized values and the corresponding original values. Lastly, I created a correlation matrix for all of the numeric variables in the full dataset. Values in the correlation matrix range from -1 to 1 with high positive values representing a high correlation and vice versa.</p>
+<pre class="r"><code>fdp12 %&gt;% pivot_wider(names_from = &quot;Year&quot;, values_from = `Murder and nonnegligent manslaughter rate`)</code></pre>
+<pre><code>## # A tibble: 561 x 55
+##     Total Alcohol `Alcohol only` `Alcohol w/seco~ Opiates Heroin
+##     &lt;dbl&gt;   &lt;dbl&gt;          &lt;dbl&gt;            &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
+##  1 1.81e6  729366         402999           326367  323409 262518
+##  2 1.81e6  729366         402999           326367  323409 262518
+##  3 1.81e6  729366         402999           326367  323409 262518
+##  4 1.81e6  729366         402999           326367  323409 262518
+##  5 1.81e6  729366         402999           326367  323409 262518
+##  6 1.81e6  729366         402999           326367  323409 262518
+##  7 1.81e6  729366         402999           326367  323409 262518
+##  8 1.81e6  729366         402999           326367  323409 262518
+##  9 1.81e6  729366         402999           326367  323409 262518
+## 10 1.81e6  729366         402999           326367  323409 262518
+## # ... with 551 more rows, and 49 more variables: `Other
+## #   opiates/synthetics` &lt;dbl&gt;, `Non-RX methadone` &lt;dbl&gt;, `Other
+## #   opiates/synthetics__1` &lt;dbl&gt;, Cocaine &lt;dbl&gt;, `Smoked cocaine` &lt;dbl&gt;,
+## #   `Non-smoked cocaine` &lt;dbl&gt;, `Marijuana/hashish` &lt;dbl&gt;,
+## #   Stimulants &lt;dbl&gt;, Methamphetamine &lt;dbl&gt;, `Other amphetamines` &lt;dbl&gt;,
+## #   `Other stimulants` &lt;dbl&gt;, `Other drugs` &lt;dbl&gt;, Tranquilizers &lt;dbl&gt;,
+## #   Benzodiazepines &lt;dbl&gt;, `Other tranquilizers` &lt;dbl&gt;,
+## #   `Sedatives/hypnotics` &lt;dbl&gt;, Barbiturates &lt;dbl&gt;, `Other
+## #   sedatives/hypnotics` &lt;dbl&gt;, Hallucinogens &lt;dbl&gt;, PCP &lt;dbl&gt;,
+## #   Inhalants &lt;dbl&gt;, `Over-the-counter` &lt;dbl&gt;, Other &lt;dbl&gt;, `None
+## #   reported` &lt;dbl&gt;, Population &lt;dbl&gt;, `Violent Crime rate` &lt;dbl&gt;, `Legacy
+## #   rape rate /1` &lt;dbl&gt;, `Robbery rate` &lt;dbl&gt;, `Aggravated assault
+## #   rate` &lt;dbl&gt;, `Property crime rate` &lt;dbl&gt;, `Burglary rate` &lt;dbl&gt;,
+## #   `Larceny-theft rate` &lt;dbl&gt;, `Motor vehicle theft rate` &lt;dbl&gt;,
+## #   State &lt;chr&gt;, Total_Users &lt;dbl&gt;, NationalPop &lt;dbl&gt;,
+## #   Fraction_of_National_Pop &lt;dbl&gt;, Total_Users_State &lt;dbl&gt;, `2004` &lt;dbl&gt;,
+## #   `2005` &lt;dbl&gt;, `2006` &lt;dbl&gt;, `2007` &lt;dbl&gt;, `2008` &lt;dbl&gt;, `2009` &lt;dbl&gt;,
+## #   `2010` &lt;dbl&gt;, `2011` &lt;dbl&gt;, `2012` &lt;dbl&gt;, `2013` &lt;dbl&gt;, `2014` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>fdp12 %&gt;% pivot_wider(names_from = &quot;Year&quot;, values_from = `Murder and nonnegligent manslaughter rate`) %&gt;% 
+    pivot_longer(c(&quot;2004&quot;, &quot;2005&quot;, &quot;2006&quot;, &quot;2007&quot;, &quot;2008&quot;, &quot;2009&quot;, 
+        &quot;2010&quot;, &quot;2011&quot;, &quot;2012&quot;, &quot;2013&quot;, &quot;2014&quot;), names_to = &quot;Year&quot;, 
+        values_to = &quot;Murder and nonnegligent manslaughter rate&quot;) %&gt;% 
+    na.omit()</code></pre>
+<pre><code>## # A tibble: 561 x 46
+##     Total Alcohol `Alcohol only` `Alcohol w/seco~ Opiates Heroin
+##     &lt;dbl&gt;   &lt;dbl&gt;          &lt;dbl&gt;            &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
+##  1 1.81e6  729366         402999           326367  323409 262518
+##  2 1.81e6  729366         402999           326367  323409 262518
+##  3 1.81e6  729366         402999           326367  323409 262518
+##  4 1.81e6  729366         402999           326367  323409 262518
+##  5 1.81e6  729366         402999           326367  323409 262518
+##  6 1.81e6  729366         402999           326367  323409 262518
+##  7 1.81e6  729366         402999           326367  323409 262518
+##  8 1.81e6  729366         402999           326367  323409 262518
+##  9 1.81e6  729366         402999           326367  323409 262518
+## 10 1.81e6  729366         402999           326367  323409 262518
+## # ... with 551 more rows, and 40 more variables: `Other
+## #   opiates/synthetics` &lt;dbl&gt;, `Non-RX methadone` &lt;dbl&gt;, `Other
+## #   opiates/synthetics__1` &lt;dbl&gt;, Cocaine &lt;dbl&gt;, `Smoked cocaine` &lt;dbl&gt;,
+## #   `Non-smoked cocaine` &lt;dbl&gt;, `Marijuana/hashish` &lt;dbl&gt;,
+## #   Stimulants &lt;dbl&gt;, Methamphetamine &lt;dbl&gt;, `Other amphetamines` &lt;dbl&gt;,
+## #   `Other stimulants` &lt;dbl&gt;, `Other drugs` &lt;dbl&gt;, Tranquilizers &lt;dbl&gt;,
+## #   Benzodiazepines &lt;dbl&gt;, `Other tranquilizers` &lt;dbl&gt;,
+## #   `Sedatives/hypnotics` &lt;dbl&gt;, Barbiturates &lt;dbl&gt;, `Other
+## #   sedatives/hypnotics` &lt;dbl&gt;, Hallucinogens &lt;dbl&gt;, PCP &lt;dbl&gt;,
+## #   Inhalants &lt;dbl&gt;, `Over-the-counter` &lt;dbl&gt;, Other &lt;dbl&gt;, `None
+## #   reported` &lt;dbl&gt;, Population &lt;dbl&gt;, `Violent Crime rate` &lt;dbl&gt;, `Legacy
+## #   rape rate /1` &lt;dbl&gt;, `Robbery rate` &lt;dbl&gt;, `Aggravated assault
+## #   rate` &lt;dbl&gt;, `Property crime rate` &lt;dbl&gt;, `Burglary rate` &lt;dbl&gt;,
+## #   `Larceny-theft rate` &lt;dbl&gt;, `Motor vehicle theft rate` &lt;dbl&gt;,
+## #   State &lt;chr&gt;, Total_Users &lt;dbl&gt;, NationalPop &lt;dbl&gt;,
+## #   Fraction_of_National_Pop &lt;dbl&gt;, Total_Users_State &lt;dbl&gt;, Year &lt;chr&gt;,
+## #   `Murder and nonnegligent manslaughter rate` &lt;dbl&gt;</code></pre>
+<p>Since my data was already tidy, I first untidied it by creating seperate variables for the Murder and nonnegligent manslaughter rate from each year using pivot_wider(). I then retured the data to its orginal tidy form by condesing those newly created varibles into 2 varaibles, one for year and one for the Murder and nonnegligent manslaughter rate.</p>
+<pre class="r"><code>plot1 &lt;- fdp12 %&gt;% group_by(State) %&gt;% mutate(cum_sum_murderrate = cumsum(`Murder and nonnegligent manslaughter rate`)) %&gt;% 
+    ggplot(aes(x = State, y = cum_sum_murderrate, fill = Year)) + 
+    geom_bar(stat = &quot;identity&quot;) + theme(text = element_text(size = 8), 
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.25)) + 
+    ggtitle(&quot;Where Am I Most Likely To Be Murderd?&quot;) + ylab(&quot;Cumulative Sum of Murder Rates Over Time&quot;)
+
+plot1</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" />
+This bar graph shows the cumulative sum of murder rates in each state from 2004-2014. The murder rate for each year in each state can be differentiated based on color with each progressive year being a lighter shade of blue. There do not appear to be any discernable trends just by looking at the data, but it does appear that those who live in Arizona, DC, and Louisiana are, historically, more likely to be murdered than residents of any other states.</p>
+<pre class="r"><code>fdp12p2 &lt;- fdp12 %&gt;% filter(State == &quot;TX&quot;)
+logfun &lt;- function(x) log10(x)
+plot2 &lt;- ggplot(fdp12p2, aes(x = log10(Fraction_of_National_Pop * 
+    `Marijuana/hashish`), y = (Fraction_of_National_Pop * Alcohol))) + 
+    geom_point(stat = &quot;summary&quot;, fun.y = &quot;logfun&quot;, size = 4, 
+        aes(color = ((`Violent Crime rate`/1e+05 * Population) + 
+            (`Property crime rate`/1e+05 * Population)))) + ggtitle(&quot;How Weed and Alcohol Affect Crime in Texas(Scaled)&quot;) + 
+    ylab(&quot;Number of Drinkers&quot;) + xlab(&quot;Number of Weed Smokers&quot;) + 
+    labs(color = &quot;Total Crimes&quot;) + scale_color_gradient(low = &quot;yellow&quot;, 
+    high = &quot;red&quot;) + scale_y_continuous(breaks = c(4.7, 4.725, 
+    4.75, 4.775, 4.8, 4.825, 4.85)) + theme(legend.text = element_text(angle = 45, 
+    hjust = 1), legend.position = &quot;bottom&quot;)
+
+plot2</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-12-1.png" width="768" style="display: block; margin: auto;" />
+This data plot shows the realtionship between marijuana and alcohol usage and violent crime rate in Texas per year. Each data point represents a specific year by nature. The number of alcohol and marijuana users were scaled to log10 values in order to generate better visualization. The number of total crimes is shown by the color of each point with increasing redness relating to an increasing number of total crimes. There appears to be a positive correlation between the number of alcohol users and the number of marijuana users. There also appears to be a weak positive correlation between the total number of crimes comitted and the number of alcohol users, and an even weaker positive correlation between the number of total crimes and the number of marijuana users. The biggest limitations to this plot is that it assumes that the number of users in Texas is consistent with national trends in usage and that the number of people represented in the self reported drug use data is proportional to Texas’ proportion of the national population.</p>
+<pre class="r"><code>scale_dat &lt;- scale(drug_use_table)
+wss &lt;- vector()
+for (i in 1:10) {
+    temp &lt;- drug_use_table %&gt;% dplyr::select(`Marijuana/hashish`, 
+        Cocaine, Heroin) %&gt;% kmeans(., i)
+    wss[i] &lt;- temp$tot.withinss
+}
+ggplot() + geom_point(aes(x = 1:10, y = wss)) + geom_path(aes(x = 1:10, 
+    y = wss)) + xlab(&quot;clusters&quot;) + scale_x_continuous(breaks = 1:10)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>clust_dat &lt;- drug_use_table %&gt;% select(`Marijuana/hashish`, Cocaine, 
+    Heroin)
+kmeans1 &lt;- clust_dat %&gt;% scale %&gt;% kmeans(3)
+kmeans1</code></pre>
+<pre><code>## K-means clustering with 3 clusters of sizes 5, 4, 2
+## 
+## Cluster means:
+##   Marijuana/hashish   Cocaine     Heroin
+## 1         0.8472566 -0.266852 -0.1178010
+## 2        -0.3854965  1.020667 -0.7681023
+## 3        -1.3471485 -1.374204  1.8307070
+## 
+## Clustering vector:
+##  [1] 2 2 2 2 1 1 1 1 1 3 3
+## 
+## Within cluster sum of squares by cluster:
+## [1] 3.285223 0.554088 0.915169
+##  (between_SS / total_SS =  84.2 %)
+## 
+## Available components:
+## 
+## [1] &quot;cluster&quot;      &quot;centers&quot;      &quot;totss&quot;        &quot;withinss&quot;    
+## [5] &quot;tot.withinss&quot; &quot;betweenss&quot;    &quot;size&quot;         &quot;iter&quot;        
+## [9] &quot;ifault&quot;</code></pre>
+<pre class="r"><code>kmeansclust &lt;- clust_dat %&gt;% mutate(cluster = as.factor(kmeans1$cluster))
+kmeansclust %&gt;% ggplot(aes(`Marijuana/hashish`, Cocaine, size = Heroin, 
+    shape = cluster)) + geom_point()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-14-1.png" width="768" style="display: block; margin: auto;" />
+The first thing I did was scale the numeric variables I planned on using in order to make the clustering analysis more accurate. Then I plotted the within-cluster Sum of Squares(WSS) against the number of clusters and then looked for the “elbow” of the graph in order to determine the number of clusters I should use in my analysis; I settled on 3 clusters. I then used kmeans() to as a means of cluster analysis between marijuana, cocaine, and heroin users in the US from the original “drug_use_table” dataset. I then generated a plot of the clusters in order to visulaize the kmeans() cluster analysis data. My hit rate on the cluster data was pretty high at 84.2%. Now to keep it a buck I’m still not totally sure how cluster analysis is useful, and I’m pretty delerious from sleep deprivation, but here goes my interpretation of the data. There seems to be a weak positive correlation between marijuana and cocaine usage as well as a strong negative correlation between heroin and cocine usage, which makes sense since cocaine and heroin basically have opposite effects.</p>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

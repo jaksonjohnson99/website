@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Jakson Johnson" />
+    <meta name="description" content="I&#39;m not sure where I&#39;m going with this yet, but here are my projects from comp bio">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 2: Modeling, Testing, and Predicting</title>
+    <meta name="generator" content="Hugo 0.60.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project2/">Project 2: Modeling, Testing, and Predicting</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>The plantTraits dataset contains various morphological and reproductive measurements of 136 different plant species(the plantTraits2 dataset used contains only the complete cases from the orginal dataset and therefore only contains 78 different species). Considering that there are 31 total variables, I will only introduce the ones used in this analysis. The “pdias” variable is a numeric variable which contains the diaspore(seed body) mass(mg) for each species. The “longindex” numeric variable is a measure of how long each species’ seed can live in a seed bank with values ranging from 0 to 1 (these values are relative to each other and do not represent a certain measure of time). The “height” variable is an ordered factor that ranges from 1-8 and with higher numbers representing taller plants.The “begflow” varaiable is an ordered factor with levels 1 &lt; 2 &lt; 3 &lt; 4 &lt; 5 &lt; 6 &lt; 7 &lt; 8 &lt; 9, which descibes the time of first flowering. The “autopoll” variable represents the frequency at which the plant self-pollinates, it is an ordered factor with levels 0never &lt; 1rare &lt; 2often&lt; 3always. The “durflow” numeric variable describes how many months out of the year for which a plant flowers. The “lign” variable is binary and describes whether or not a plant is woody. The “suman” variable is binary and describes whether or not a plant is summer annual. The “lign” variable is binary and describes whether or not a plant is woody. The “insects” variable is an ordered factor ranging from 0-4 which describes how often the plant species is pollinated by insects. The “leafy” variable is binary and describes whether or not a plant is leafy. The “ros” variable is binary and describes whether or not a plant is a rossette. The “semiros” variable is binary and describes whether or not a plant is a semi-rossette.</p>
+<pre class="r"><code>library(cluster)
+data(plantTraits)
+plantTraits2 &lt;- plantTraits %&gt;% na.omit()
+man1&lt;-manova(cbind(pdias,longindex)~height, data=plantTraits2)
+summary(man1)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## height 7 0.85499 7.4671 14 140 1.663e-11 ***
+## Residuals 70
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>ggplot(plantTraits2, aes(x = pdias, y = longindex)) +
+ geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed() + facet_wrap(~height)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>summary.aov(man1)</code></pre>
+<pre><code>## Response pdias :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## height 7 2731579 390226 21.312 4.345e-15 ***
+## Residuals 70 1281716 18310
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response longindex :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## height 7 2.1299 0.304274 3.9574 0.001076 **
+## Residuals 70 5.3822 0.076888
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>pairwise.t.test(plantTraits2$pdias,plantTraits2$height,
+ p.adj=&quot;bonferroni&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  plantTraits2$pdias and plantTraits2$height 
+## 
+##   1       2       3       4       5       6       7
+## 2 1       -       -       -       -       -       -
+## 3 1       1       -       -       -       -       -
+## 4 1       1       1       -       -       -       -
+## 5 1       1       1       1       -       -       -
+## 6 1.1e-09 &lt; 2e-16 5.9e-16 2.2e-15 8.7e-15 -       -
+## 7 1       1       1       1       1       7.6e-10 -
+## 8 1       1       1       1       1       1.1e-10 1
+## 
+## P value adjustment method: bonferroni</code></pre>
+<pre class="r"><code>pairwise.t.test(plantTraits2$longindex,plantTraits2$height,
+ p.adj=&quot;bonferroni&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  plantTraits2$longindex and plantTraits2$height 
+## 
+##   1     2     3     4     5     6     7    
+## 2 1.000 -     -     -     -     -     -    
+## 3 1.000 1.000 -     -     -     -     -    
+## 4 1.000 1.000 1.000 -     -     -     -    
+## 5 1.000 1.000 1.000 1.000 -     -     -    
+## 6 0.677 0.090 0.490 0.148 0.237 -     -    
+## 7 1.000 0.297 1.000 0.483 0.762 1.000 -    
+## 8 0.509 0.014 0.163 0.039 0.079 1.000 1.000
+## 
+## P value adjustment method: bonferroni</code></pre>
+<pre class="r"><code>1-(.95^59)</code></pre>
+<pre><code>## [1] 0.9515055</code></pre>
+<pre class="r"><code>covmats&lt;-plantTraits2%&gt;%group_by(height)%&gt;%do(covs=cov(.[2:3]))
+for(i in 1:3){print(covmats$covs[i])}</code></pre>
+<pre><code>## [[1]]
+##            longindex   durflow
+## longindex 0.01388889 0.1666667
+## durflow   0.16666667 2.0000000
+## 
+## [[1]]
+##            longindex   durflow
+## longindex 0.09304081 0.3117867
+## durflow   0.31178668 7.4046154
+## 
+## [[1]]
+##            longindex    durflow
+## longindex 0.08872030 0.02887683
+## durflow   0.02887683 1.79084967</code></pre>
+<p>A one-way multivariate analysis of variance (MANOVA) was conducted to determine the effect of the plant height (1, 2,…,8) on two dependent variables (pdias anf longindex). Examination of bivariate density plots for each group revealed did reveal stark deparures from multivariate normality. Examination of covariance matricies for each group did not reveal relative homogeneity. It is also
+Significant differences were found among the three iris species on the two dependent measures, Pillai trace = 0.85499, pseudo F(14,140) = 7.4671, p&lt;0.0001
+Univariate analyses of variance (ANOVAs) for each dependent variable were conducted as follow-up tests to the MANOVA, using the Bonferroni method for controlling Type I error rates for multiple comparisons. The univariate ANOVAs for pdias and longindex were also significant,F(7,70) = 21.312, p&lt;0.0001 and F(7,70) = 3.9574, p&lt;0.001 respectively.
+Post hoc analysis was performed conducting pairwise comparisons to determine which Species differed in sepal length and petal width. Height = 6 was found to differ significantly from the rest of the heights in terms of pdias after adjusting for multiple comparisons (bonferroni). Height = 8 was found to differ significantly heights 2 and 6 in terms of longindex after adjusting for multiple comparisons (bonferroni).
+The probability of a type I error occuring before adjustment was 0.9515055.</p>
+<pre class="r"><code>library(vegan)
+plantTraits2 %&gt;% select(autopoll)%&gt;% group_by(autopoll) %&gt;% count()</code></pre>
+<pre><code>## # A tibble: 4 x 2
+## # Groups:   autopoll [4]
+##   autopoll     n
+##   &lt;ord&gt;    &lt;int&gt;
+## 1 0           37
+## 2 1           17
+## 3 2           11
+## 4 3           13</code></pre>
+<pre class="r"><code>dists&lt;-plantTraits2%&gt;%select(height, begflow)%&gt;%dist()
+adonis(dists~autopoll,data=plantTraits2)</code></pre>
+<pre><code>## 
+## Call:
+## adonis(formula = dists ~ autopoll, data = plantTraits2) 
+## 
+## Permutation: free
+## Number of permutations: 999
+## 
+## Terms added sequentially (first to last)
+## 
+##           Df SumsOfSqs MeanSqs F.Model    R2 Pr(&gt;F)
+## autopoll   3     10.49  3.4980 0.63256 0.025  0.677
+## Residuals 74    409.21  5.5299         0.975       
+## Total     77    419.71                 1.000</code></pre>
+<pre class="r"><code>#compute observed F 
+
+SST&lt;- sum(dists^2)/78 
+SST</code></pre>
+<pre><code>## [1] 419.7051</code></pre>
+<pre class="r"><code>SSW&lt;-plantTraits2%&gt;%group_by(autopoll)%&gt;%select(height, begflow)%&gt;% do(d=dist(.[2:3],&quot;euclidean&quot;))%&gt;%ungroup()%&gt;% summarize(sum(d[[1]]^2)/37 + sum(d[[2]]^2)/17+ sum(d[[3]]^2)/11+sum(d[[4]]^2)/13)%&gt;%pull
+F_obs&lt;-((SST-SSW)/3)/(SSW/74)#observed F statistic
+F_obs</code></pre>
+<pre><code>## [1] 0.632563</code></pre>
+<pre class="r"><code>Fs&lt;-replicate(1000,{ new&lt;-plantTraits2%&gt;%mutate(autopoll=sample(autopoll)) #permute the species vector 
+
+SSW&lt;-new%&gt;%group_by(autopoll)%&gt;%select(height, begflow)%&gt;% do(d=dist(.[2:3],&quot;euclidean&quot;))%&gt;%ungroup()%&gt;% summarize(sum(d[[1]]^2)/37 + sum(d[[2]]^2)/17+ sum(d[[3]]^2)/11+sum(d[[4]]^2)/13)%&gt;%pull
+
+((SST-SSW)/3)/(SSW/74) #calculate new F on randomized data 
+})</code></pre>
+<pre class="r"><code>{hist(Fs,prob = T); abline(v=F_obs, col=&quot;red&quot;, add=T)}</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>mean(Fs&gt;F_obs)</code></pre>
+<pre><code>## [1] 0.707</code></pre>
+<p>A Permanova was performed(manually and via the adonis function) to determine if self-pollination frequency effects a plants height or time of first flowering.
+HO:The centriods and dispersion of the frequencies of self-pollination as defined by height and the time of first flowering are equal.
+HA:The centriods and dispersion of the frequencies of self-pollination as defined by height and the time of first flowering are different.
+The results of the Permanova test showed there was no significant difference in the centriods or dispersion of the frequencies of self-pollination as defined by height and the time of first flowering F(3,74) = 0.63256, p-value&gt;0.05. Therefore, we fail to reject the null hypothesis.</p>
+<pre class="r"><code>plantTraits2$longindex_c &lt;- plantTraits2$longindex - mean(plantTraits2$longindex)
+plantTraits2$lign&lt;-relevel(plantTraits2$lign,ref=&quot;0&quot;)
+fit&lt;-glm(pdias ~ lign * longindex_c, data=plantTraits2)
+summary(fit)</code></pre>
+<pre><code>##
+## Call:
+## glm(formula = pdias ~ lign * longindex_c, data =
+plantTraits2)
+##
+## Deviance Residuals:
+## Min 1Q Median 3Q Max
+## -371.67 -13.19 -5.88 2.20 1303.63
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 8.888 24.484 0.363 0.7176
+## lign1 131.187 80.053 1.639 0.1055
+## longindex_c -29.105 83.907 -0.347 0.7297
+## lign1:longindex_c -539.593 215.566 -2.503 0.0145 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## (Dispersion parameter for gaussian family taken to be
+36620.12)
+##
+## Null deviance: 4013295 on 77 degrees of freedom
+## Residual deviance: 2709889 on 74 degrees of freedom
+## AIC: 1046.9
+##
+## Number of Fisher Scoring iterations: 2</code></pre>
+<pre class="r"><code>coef(fit)</code></pre>
+<pre><code>## (Intercept) lign1 longindex_c lign1:longindex_c
+## 8.88833 131.18657 -29.10531 -539.59277</code></pre>
+<pre class="r"><code>library(sandwich)
+library(lmtest)
+coeftest(fit, vcov=vcovHC(fit))</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) 8.8883 5.8506 1.5192 0.12871
+## lign1 131.1866 84.0112 1.5615 0.11840
+## longindex_c -29.1053 25.1311 -1.1581 0.24681
+## lign1:longindex_c -539.5928 312.2449 -1.7281 0.08397 .
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>resids&lt;-fit$residuals 
+fitvals&lt;-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color=&#39;red&#39;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-16-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 13.796, df = 3, p-value = 0.003196</code></pre>
+<pre class="r"><code>ks.test(resids, &quot;pnorm&quot;, sd=sd(resids))</code></pre>
+<pre><code>## 
+##  One-sample Kolmogorov-Smirnov test
+## 
+## data:  resids
+## D = 0.40368, p-value = 5.411e-12
+## alternative hypothesis: two-sided</code></pre>
+<pre class="r"><code>newdat&lt;-plantTraits2
+newdat$lign&lt;-rep(&quot;1&quot;,length(newdat$lign))
+newdat$pred1&lt;-predict(fit,newdat)
+newdat$lign&lt;-rep(&quot;0&quot;,length(newdat$lign))
+newdat$pred2&lt;-predict(fit,newdat)
+
+ggplot(plantTraits2, aes(x = longindex_c, y = pdias)) +
+    geom_point() + geom_line(data = newdat, aes(y = pred1),color=&#39;blue&#39; ) +
+    geom_line(data = newdat, aes(y = pred2),color=&#39;red&#39; )</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-19-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pdias=plantTraits2$pdias
+(sum((pdias-mean(pdias))^2)-sum(fit$residuals^2))/sum((pdias-mean(pdias))^2)</code></pre>
+<pre><code>## [1] 0.324772</code></pre>
+<p>The (Intercept) coeficent estimate is 8.88833 which is the predicted seed mass for a non-woody plant with a longindex of 0. The lign1 coeficent estimate is 131.18657 which means that the seed of a woody plant is 131.18657mg heavier than a non-woody plant seed, on average, while controlling for longindex_c. The longindex_c coeficent estimate is -29.10531 which is the slope of longindex_c on pdias while controlling for lign. The longindex_c:lign1 coeficent estimate is -539.59277 which is the difference in slopes between woody and non-woody plants. The data failed the assumptions of linearity(as shown by the plot of the residual and fitted values), heteroskedacity(as shown by the bp.test, p-value = 0.003196), and normality(as shown by the ks.test, p-value = 5.411e-12). After recomputing regression results with robust standard errors, the p-values for (Intercept) and longindex_c decreased and the p-values for lign1 and longindex_c:lign1 increased. Notably, the longindex_c:lign1 coeffeicent became no longer significant. The proportion of variation explained by the model (R^2) is 0.324772.</p>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, { boot_dat&lt;-boot_dat&lt;-plantTraits2[sample(nrow(plantTraits2), replace=TRUE),]
+fit2&lt;-glm(pdias ~ lign*longindex_c, data=boot_dat)
+coef(fit2) 
+})
+
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%gather%&gt;%group_by(key)%&gt;% summarize(lower=quantile(value,.025, na.rm = TRUE), upper=quantile(value,.975, na.rm = TRUE))</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   key                  lower   upper
+##   &lt;chr&gt;                &lt;dbl&gt;   &lt;dbl&gt;
+## 1 (Intercept)           2.08   21.3 
+## 2 lign1              -506.    286.  
+## 3 lign1:longindex_c -1977.   -133.  
+## 4 longindex_c         -83.6    -2.29</code></pre>
+<pre class="r"><code>samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd,na.rm=TRUE)</code></pre>
+<pre><code>##   (Intercept)    lign1 longindex_c lign1:longindex_c
+## 1    5.526235 208.0385    23.75761          579.7032</code></pre>
+<p>Using bootstrapped SE’s the new coefficient estimates are (Intercept) = 5.547337, lign1 = 186.0174, longindex_c = 23.73045, lign1:longindex_c = 526.3633. All of the coefficients, except (Intercept) which decreased, increased when compared to the original and robust coefficients (which were the same). Furthermore, the longindex_c and lign1:longindex_c coeffiecients became significant, p-value&lt;0.05.</p>
+<pre class="r"><code>p&lt;-seq(0,1,by=.1)
+odds&lt;-function(p)p/(1-p)
+logit&lt;-function(p)log(odds(p))
+fit3&lt;-glm(suman~durflow+insects, data=plantTraits2, family=&quot;binomial&quot;)
+summary(fit3)</code></pre>
+<pre><code>##
+## Call:
+## glm(formula = suman ~ durflow + insects, family =
+&quot;binomial&quot;,
+## data = plantTraits2)
+##
+## Deviance Residuals:
+## Min 1Q Median 3Q Max
+## -0.8924 -0.4249 -0.3138 -0.2304 2.6989
+##
+## Coefficients:
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -0.2295 426.4026 -0.001 0.99957
+## durflow 0.5502 0.2098 2.622 0.00873 **
+## insects.L -0.6830 0.9049 -0.755 0.45036
+## insects.Q -10.1026 1139.6067 -0.009 0.99293
+## insects.C 1.0814 1.0293 1.051 0.29343
+## insects^4 14.3004 1528.9426 0.009 0.99254
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## (Dispersion parameter for binomial family taken to be 1)
+##
+## Null deviance: 63.464 on 77 degrees of freedom
+## Residual deviance: 39.639 on 72 degrees of freedom
+## AIC: 51.639
+##
+## Number of Fisher Scoring iterations: 16</code></pre>
+<pre class="r"><code>exp(coef(fit3))</code></pre>
+<pre><code>## (Intercept) durflow insects.L insects.Q insects.C
+insects^4
+## 7.949315e-01 1.733669e+00 5.050813e-01 4.097162e-05
+2.948862e+00 1.624009e+06</code></pre>
+<pre class="r"><code>plantTraits2$prob&lt;-predict(fit3,type=&quot;response&quot;)
+table(predict=as.numeric(plantTraits2$prob&gt;.5),truth=plantTraits2$suman)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict  0  1 Sum
+##     0   67  6  73
+##     1    0  5   5
+##     Sum 67 11  78</code></pre>
+<pre class="r"><code>class_diag(plantTraits2$prob,plantTraits2$suman)</code></pre>
+<pre><code>##         acc      sens spec ppv       auc
+## 1 0.9230769 0.4545455    1   1 0.8405699</code></pre>
+<pre class="r"><code>plantTraits2$logit&lt;-predict(fit3)
+ggplot(plantTraits2,aes(logit, fill=suman))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-27-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>prob&lt;-predict(fit3,type=&quot;response&quot;)
+library(pROC)
+roc(response=plantTraits2$suman,predictor=plantTraits2$prob,print.auc=T,ci=T,plot=T)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-28-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre><code>##
+## Call:
+## roc.default(response = plantTraits2$suman, predictor =
+plantTraits2$prob, ci = T, plot = T, print.auc = T)
+##
+## Data: plantTraits2$prob in 67 controls
+(plantTraits2$suman 0) &lt; 11 cases (plantTraits2$suman 1).
+## Area under the curve: 0.8406
+## 95% CI: 0.6886-0.9925 (DeLong)</code></pre>
+<pre class="r"><code>set.seed(1234) 
+k=5 #choose number of folds 
+data1&lt;-plantTraits2[sample(nrow(plantTraits2)),] #randomly order rows
+folds&lt;-cut(seq(1:nrow(plantTraits2)),breaks=k,labels=F) #create folds 
+
+diags&lt;-NULL 
+for(i in 1:k){ 
+  ## Create training and test sets
+  train&lt;-data1[folds!=i,]  
+  test&lt;-data1[folds==i,]  
+  truth&lt;-test$suman  
+  
+  ## Train model on training set 
+  fitcv&lt;-glm(suman~durflow+insects, family=&quot;binomial&quot;, data=train)  
+  probs&lt;-predict(fitcv,newdata = test,type=&quot;response&quot;)
+  
+  ## Test model on test set (save all k results)  
+  diags&lt;-rbind(diags,class_diag(probs,truth)) 
+  }
+apply(diags,2,mean)</code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.9225000 0.3500000 1.0000000       NaN 0.6688233</code></pre>
+<p>The (Intercept) coefficient = 7.949315e-01 which is the odds of a plant being summer annual with no insect pollination and a flower duration of 1. The durflow coefficient = 1.733669 which means the odds of a plant being summer annual increases by a factor of 1.733669 for each one month increase in flower duration, controlling for insect pollination level. Controlling for flower duration, there is no significant difference between any of the levels of insect pollination when compared to no insect pollination, in terms of the odds of being a summer annual plant. The accuracy of the model = 0.9230769, sensitivity (TPR)= 0.4545455, specificity (TNR) = 1, and recall (PPV)= 1. Accuracy refers to the proportion of correctly identified plants as predicted by the logistic regression. Sensitivity is the proportion of correctly identified summer annual plants. Specificity is the proportion of correctly identified non-summer annual plants. Specificity is the proportion of the number plants correctly predicted to be summer annual compared to the total number of plants predicted to be summer annual. The ROC curve is produced by plotting the model’s Sensitivity (TPR) against 1-Specificity (FPR). The area underneath the ROC curve is the model’s AUC which represents well the model predicts a that a plant will be summer annual. In other words, the ROC curve visualizes the tradeoff between sensitivity and specificity.The AUC for this model is 0.8405699 which means its pretty good at predicting whether or not a plant is summer annual! A 10-fold CV was performed on the model in order to compute the average out-of-sample Accuracy, Sensitivity, and Recall for the model, which are 0.9225000, 0.3500000, and NaN, respectively.</p>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

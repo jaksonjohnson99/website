@@ -1,0 +1,230 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Jakson Johnson"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+```
+The plantTraits dataset contains various morphological and reproductive measurements of 136 different plant species(the plantTraits2 dataset used contains only the complete cases from the orginal dataset and therefore only contains 78 different species). Considering that there are 31 total variables, I will only introduce the ones used in this analysis. The "pdias" variable is a numeric variable which contains the diaspore(seed body) mass(mg) for each species. The "longindex" numeric variable is a measure of how long each species' seed can live in a seed bank with values ranging from 0 to 1 (these values are relative to each other and do not represent a certain measure of time). The "height" variable is an ordered factor that ranges from 1-8 and with higher numbers representing taller plants.The "begflow" varaiable is an ordered factor with levels 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9, which descibes the time of first flowering. The "autopoll" variable represents the frequency at which the plant self-pollinates, it is an ordered factor with levels 0never < 1rare < 2often< 3always. The "durflow" numeric variable describes how many months out of the year for which a plant flowers. The "lign" variable is binary and describes whether or not a plant is woody. The "suman" variable is binary and describes whether or not a plant is summer annual. The "lign" variable is binary and describes whether or not a plant is woody. The "insects" variable is an ordered factor ranging from 0-4 which describes how often the plant species is pollinated by insects. The "leafy" variable is binary and describes whether or not a plant is leafy. The "ros" variable is binary and describes whether or not a plant is a rossette. The "semiros" variable is binary and describes whether or not a plant is a semi-rossette.
+
+```{R}
+library(cluster)
+data(plantTraits)
+plantTraits2 <- plantTraits %>% na.omit()
+man1<-manova(cbind(pdias,longindex)~height, data=plantTraits2)
+summary(man1)
+```
+```{R}
+ggplot(plantTraits2, aes(x = pdias, y = longindex)) +
+ geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed() + facet_wrap(~height)
+```
+```{R}
+summary.aov(man1)
+```
+```{R}
+pairwise.t.test(plantTraits2$pdias,plantTraits2$height,
+ p.adj="bonferroni")
+```
+```{R}
+pairwise.t.test(plantTraits2$longindex,plantTraits2$height,
+ p.adj="bonferroni")
+```
+```{R}
+1-(.95^59)
+```
+```{R}
+covmats<-plantTraits2%>%group_by(height)%>%do(covs=cov(.[2:3]))
+for(i in 1:3){print(covmats$covs[i])}
+```
+A one-way multivariate analysis of variance (MANOVA) was conducted to determine the effect of the plant height (1, 2,...,8) on two dependent variables (pdias anf longindex). Examination of bivariate density plots for each group revealed did reveal stark deparures from multivariate normality. Examination of covariance matricies for each group did not reveal relative homogeneity. It is also
+Significant differences were found among the three iris species on the two dependent measures, Pillai trace = 0.85499, pseudo F(14,140) =  7.4671, p<0.0001
+Univariate analyses of variance (ANOVAs) for each dependent variable were conducted as follow-up tests to the MANOVA, using the Bonferroni method for controlling Type I error rates for multiple comparisons. The univariate ANOVAs for pdias and longindex were also significant,F(7,70) =  21.312, p<0.0001 and F(7,70) =  3.9574, p<0.001 respectively.
+Post hoc analysis was performed conducting pairwise comparisons to determine which Species differed in sepal length and petal width. Height = 6 was found to differ significantly from the rest of the heights in terms of pdias after adjusting for multiple comparisons (bonferroni). Height = 8 was found to differ significantly heights 2 and 6 in terms of longindex after adjusting for multiple comparisons (bonferroni).
+The probability of a type I error occuring before adjustment was 0.9515055.
+```{R}
+library(vegan)
+plantTraits2 %>% select(autopoll)%>% group_by(autopoll) %>% count()
+dists<-plantTraits2%>%select(height, begflow)%>%dist()
+adonis(dists~autopoll,data=plantTraits2)
+```
+```{R}
+#compute observed F 
+
+SST<- sum(dists^2)/78 
+SST
+SSW<-plantTraits2%>%group_by(autopoll)%>%select(height, begflow)%>% do(d=dist(.[2:3],"euclidean"))%>%ungroup()%>% summarize(sum(d[[1]]^2)/37 + sum(d[[2]]^2)/17+ sum(d[[3]]^2)/11+sum(d[[4]]^2)/13)%>%pull
+F_obs<-((SST-SSW)/3)/(SSW/74)#observed F statistic
+F_obs
+```
+```{R}
+Fs<-replicate(1000,{ new<-plantTraits2%>%mutate(autopoll=sample(autopoll)) #permute the species vector 
+
+SSW<-new%>%group_by(autopoll)%>%select(height, begflow)%>% do(d=dist(.[2:3],"euclidean"))%>%ungroup()%>% summarize(sum(d[[1]]^2)/37 + sum(d[[2]]^2)/17+ sum(d[[3]]^2)/11+sum(d[[4]]^2)/13)%>%pull
+
+((SST-SSW)/3)/(SSW/74) #calculate new F on randomized data 
+})
+```
+```{R}
+{hist(Fs,prob = T); abline(v=F_obs, col="red", add=T)}
+```
+```{R}
+mean(Fs>F_obs)
+```
+A Permanova was performed(manually and via the adonis function) to determine if self-pollination frequency effects a plants height or time of first flowering.
+HO:The centriods and dispersion of the frequencies of self-pollination as defined by height and the time of first flowering are equal.
+HA:The centriods and dispersion of the frequencies of self-pollination as defined by height and the time of first flowering are different.
+The results of the Permanova test showed there was no significant difference in the centriods or dispersion of the frequencies of self-pollination as defined by height and the time of first flowering F(3,74) = 0.63256, p-value>0.05. Therefore, we fail to reject the null hypothesis.
+```{R}
+plantTraits2$longindex_c <- plantTraits2$longindex - mean(plantTraits2$longindex)
+plantTraits2$lign<-relevel(plantTraits2$lign,ref="0")
+fit<-glm(pdias ~ lign * longindex_c, data=plantTraits2)
+summary(fit)
+```
+```{R}
+coef(fit)
+```
+```{R}
+library(sandwich)
+library(lmtest)
+coeftest(fit, vcov=vcovHC(fit))
+```
+```{R}
+resids<-fit$residuals 
+fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')
+```
+```{R}
+bptest(fit)
+```
+```{R}
+ks.test(resids, "pnorm", sd=sd(resids))
+```
+```{R}
+newdat<-plantTraits2
+newdat$lign<-rep("1",length(newdat$lign))
+newdat$pred1<-predict(fit,newdat)
+newdat$lign<-rep("0",length(newdat$lign))
+newdat$pred2<-predict(fit,newdat)
+
+ggplot(plantTraits2, aes(x = longindex_c, y = pdias)) +
+    geom_point() + geom_line(data = newdat, aes(y = pred1),color='blue' ) +
+    geom_line(data = newdat, aes(y = pred2),color='red' )
+```
+```{R}
+pdias=plantTraits2$pdias
+(sum((pdias-mean(pdias))^2)-sum(fit$residuals^2))/sum((pdias-mean(pdias))^2)
+```
+The (Intercept) coeficent estimate is 8.88833 which is the predicted seed mass for a non-woody plant with a longindex of 0. The lign1 coeficent estimate is 131.18657 which means that the seed of a woody plant is 131.18657mg heavier than a non-woody plant seed, on average, while controlling for longindex_c. The longindex_c coeficent estimate is -29.10531 which is the slope of longindex_c on pdias while controlling for lign. The longindex_c:lign1 coeficent estimate is -539.59277 which is the difference in slopes between woody and non-woody plants. The data failed the assumptions of linearity(as shown by the plot of the residual and fitted values), heteroskedacity(as shown by the bp.test, p-value = 0.003196), and normality(as shown by the ks.test, p-value = 5.411e-12). After recomputing regression results with robust standard errors, the p-values for (Intercept) and longindex_c decreased and the p-values for lign1 and longindex_c:lign1 increased. Notably, the longindex_c:lign1 coeffeicent became no longer significant. The proportion of variation explained by the model (R^2) is 0.324772.
+ 
+```{R}
+samp_distn<-replicate(5000, { boot_dat<-boot_dat<-plantTraits2[sample(nrow(plantTraits2), replace=TRUE),]
+fit2<-glm(pdias ~ lign*longindex_c, data=boot_dat)
+coef(fit2) 
+})
+
+samp_distn%>%t%>%as.data.frame%>%gather%>%group_by(key)%>% summarize(lower=quantile(value,.025, na.rm = TRUE), upper=quantile(value,.975, na.rm = TRUE))
+```
+```{R}
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd,na.rm=TRUE)
+```
+Using bootstrapped SE's the new coefficient estimates are (Intercept) = 5.547337, lign1 = 186.0174, longindex_c = 23.73045, lign1:longindex_c = 526.3633. All of the coefficients, except (Intercept) which decreased, increased when compared to the original and robust coefficients (which were the same). Furthermore, the longindex_c and lign1:longindex_c coeffiecients became significant, p-value<0.05.
+```{R}
+p<-seq(0,1,by=.1)
+odds<-function(p)p/(1-p)
+logit<-function(p)log(odds(p))
+fit3<-glm(suman~durflow+insects, data=plantTraits2, family="binomial")
+summary(fit3)
+```
+```{R}
+exp(coef(fit3))
+```
+```{R}
+plantTraits2$prob<-predict(fit3,type="response")
+table(predict=as.numeric(plantTraits2$prob>.5),truth=plantTraits2$suman)%>%addmargins
+```
+```{R}
+class_diag(plantTraits2$prob,plantTraits2$suman)
+```
+```{R}
+plantTraits2$logit<-predict(fit3)
+ggplot(plantTraits2,aes(logit, fill=suman))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)
+```
+```{R}
+prob<-predict(fit3,type="response")
+library(pROC)
+roc(response=plantTraits2$suman,predictor=plantTraits2$prob,print.auc=T,ci=T,plot=T)
+```
+```{R}
+set.seed(1234) 
+k=5 #choose number of folds 
+data1<-plantTraits2[sample(nrow(plantTraits2)),] #randomly order rows
+folds<-cut(seq(1:nrow(plantTraits2)),breaks=k,labels=F) #create folds 
+
+diags<-NULL 
+for(i in 1:k){ 
+  ## Create training and test sets
+  train<-data1[folds!=i,]  
+  test<-data1[folds==i,]  
+  truth<-test$suman  
+  
+  ## Train model on training set 
+  fitcv<-glm(suman~durflow+insects, family="binomial", data=train)  
+  probs<-predict(fitcv,newdata = test,type="response")
+  
+  ## Test model on test set (save all k results)  
+  diags<-rbind(diags,class_diag(probs,truth)) 
+  }
+apply(diags,2,mean)
+```
+The (Intercept) coefficient = 7.949315e-01 which is the odds of a plant being summer annual with no insect pollination and a flower duration of 1. The durflow coefficient = 1.733669 which means the odds of a plant being summer annual increases by a factor of 1.733669 for each one month increase in flower duration, controlling for insect pollination level. Controlling for flower duration, there is no significant difference between any of the levels of insect pollination when compared to no insect pollination, in terms of the odds of being a summer annual plant. The accuracy of the model = 0.9230769, sensitivity (TPR)= 0.4545455, specificity (TNR) = 1, and recall (PPV)= 1. Accuracy refers to the proportion of correctly identified plants as predicted by the logistic regression. Sensitivity is the proportion of correctly identified summer annual plants. Specificity is the proportion of correctly identified non-summer annual plants. Specificity is the proportion of the number plants correctly predicted to be summer annual compared to the total number of plants predicted to be summer annual. The ROC curve is produced by plotting the model's Sensitivity (TPR) against 1-Specificity (FPR). The area underneath the ROC curve is the model's AUC which represents well the model predicts a that a plant will be summer annual. In other words, the ROC curve visualizes the tradeoff between sensitivity and specificity.The AUC for this model is 0.8405699 which means its pretty good at predicting whether or not a plant is summer annual! A 10-fold CV was performed on the model in order to compute the average out-of-sample Accuracy, Sensitivity, and Recall for the model, which are 0.9225000, 0.3500000, and NaN, respectively. 

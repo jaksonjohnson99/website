@@ -11,7 +11,7 @@ theme = "hugo-sustain"
   post = "/:year/:month/:day/:slug"
 
 [params]
-  avatar = "profile.png"
+  avatar = "profilepicgit.jpg"
   author = "Jakson Johnson"
   description = "I'm not sure where I'm going with this yet, but here are my projects from comp bio"
 
@@ -20,10 +20,10 @@ theme = "hugo-sustain"
   custom_js  = []
 
 [params.social]
-  Github        = "username"
+  Github        = "jaksonjohnson99"
   Email         = "jaksonjohnson99@gmail.com"
   Twitter       = "JaksonJkilla"
-  LinkedIn      = "username"
+
 
 ## Main Menu
 [[menu.main]]

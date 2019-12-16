@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3877865902",
+    "hash" : "0",
     "id" : "DAA4AC35",
-    "lastKnownWriteTime" : 1576454480,
-    "last_content_update" : 1576454480630,
+    "lastKnownWriteTime" : 1576460143,
+    "last_content_update" : 1576460143445,
     "path" : "C:/Users/jakso/Desktop/website/config.toml",
     "project_path" : "config.toml",
     "properties" : {
-        "cursorPosition" : "24,19",
-        "scrollLine" : "19"
+        "cursorPosition" : "26,0",
+        "scrollLine" : "12"
     },
     "read_only" : false,
     "read_only_alternatives" : [
